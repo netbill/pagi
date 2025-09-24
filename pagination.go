@@ -1,31 +1,46 @@
 package pagi
 
-type Request struct {
-	Page uint64 `json:"page"`
-	Size uint64 `json:"size"`
-}
+import (
+	"net/http"
+	"strconv"
 
-type Response struct {
-	Page  uint64 `json:"page"`
-	Size  uint64 `json:"size"`
-	Total uint64 `json:"total"`
-}
+	"github.com/go-chi/chi/v5"
+)
 
-type SortField struct {
-	Field  string
-	Ascend bool // "asc" или "desc"
-}
-
-func CalculateLimitOffset(req Request) (limit uint64, offset uint64) {
-	limit = req.Size
-	offset = (req.Page - 1) * req.Size
-
-	if limit == 0 {
-		limit = 10 // default limit if not specified
-	}
-	if offset < 0 {
-		offset = 0 // ensure offset is not negative
+func GetPagination(r *http.Request) (page, size uint) {
+	pageStr := chi.URLParam(r, "page")
+	if pageStr != "" {
+		n, err := strconv.Atoi(pageStr)
+		if err != nil {
+			page = 1
+		}
+		page = uint(n)
 	}
 
+	sizeStr := chi.URLParam(r, "size")
+	if sizeStr != "" {
+		n, err := strconv.Atoi(sizeStr)
+		if err != nil {
+			size = 20
+		}
+		size = uint(n)
+	}
+
+	return page, size
+}
+
+func PagConvert(page, size uint) (limit, offset uint) {
+	if page == 0 {
+		page = 1
+	}
+	if size > 100 {
+		size = 100
+	}
+	if size == 0 {
+		size = 20
+	}
+
+	limit = uint(size)
+	offset = uint((page - 1) * size)
 	return
 }
