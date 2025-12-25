@@ -12,7 +12,7 @@ type Params struct {
 }
 
 type Page[T any] struct {
-	Data       []T
+	Data       T
 	NextCursor map[string]string
 	Total      int
 }
